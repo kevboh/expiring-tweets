@@ -1,5 +1,5 @@
 const Twitter = require('twitter');
-const fetch = require('isomorphic-fetch'); // or another library of choice.
+const fetch = require('isomorphic-fetch');
 const Dropbox = require('dropbox').Dropbox;
 const ignoredTweets = require('./ignored-tweets.json');
 const bigInt = require('big-integer');
