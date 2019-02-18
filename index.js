@@ -2,6 +2,7 @@ const Twitter = require('twitter');
 const fetch = require('isomorphic-fetch'); // or another library of choice.
 const Dropbox = require('dropbox').Dropbox;
 const ignoredTweets = require('./ignored-tweets.json');
+const bigInt = require('big-integer');
 
 const DAYS_THRESHOLD = 14;
 const BATCH_SIZE = 50;
@@ -26,23 +27,24 @@ function forAllTweets(fx, commit) {
     exclude_replies: false,
     include_rts: true,
     tweet_mode: 'extended',
-    ...(max_id ? { max_id } : {})
+    ...(max_id ? { max_id: max_id.toString() } : {})
   });
 
   const pageTweets = maxID =>
     client.get('statuses/user_timeline', params(maxID)).then(tweets => {
       console.log(tweets.length);
-      var minID = Number.POSITIVE_INFINITY;
+      var minID = undefined;
       const promises = [];
       tweets.forEach(tweet => {
         promises.push(fx(tweet));
-        if (tweet.id < minID) {
-          minID = tweet.id;
+        const bigTweetID = bigInt(tweet.id_str);
+        if (minID === undefined || bigTweetID.compare(minID) === -1) {
+          minID = bigTweetID;
         }
       });
 
       if (tweets.length > 1) {
-        console.log(minID);
+        console.log('Min ID for page: ', minID.toString());
         return Promise.all(promises)
           .then(commit)
           .then(() => pageTweets(minID));
@@ -59,25 +61,33 @@ const processTweet = tweet => {
   const now = new Date();
   const threshold = DAYS_THRESHOLD * 24 * 60 * 60 * 1000;
 
-  if (ignoredTweets.find(v => v === tweet.id)) {
+  if (ignoredTweets.find(v => v === tweet.id_str)) {
     console.log('Ignored, in json: ', tweet.full_text);
     return Promise.resolve();
   } else if (now.getTime() - tweetDate.getTime() < threshold) {
     console.log('Ignored, too young: ', tweet.full_text, tweetDate);
     return Promise.resolve();
   } else {
-    // Save tweet, then delete it
+    // Delete and save tweet
 
-    const path = `/${tweet.id}.json`;
+    const path = `/${tweet.id_str}.json`;
     console.log(`Saving ${path}...`);
 
     const contents = JSON.stringify(tweet);
 
-    return dbx
-      .filesUploadSessionStart({
-        contents,
-        close: true
+    return client
+      .post(`statuses/destroy/${tweet.id_str}.json`, { trim_user: true })
+      .catch(err => {
+        console.log(err);
+        console.log(tweet);
+        fatalError('error');
       })
+      .then(() =>
+        dbx.filesUploadSessionStart({
+          contents,
+          close: true
+        })
+      )
       .then(response => {
         const entry = {
           cursor: {

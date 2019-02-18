@@ -8,6 +8,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "big-integer": "1.6.41",
     "dropbox": "4.0.16",
     "isomorphic-fetch": "2.2.1",
     "twitter": "1.7.1"
