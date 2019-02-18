@@ -1,0 +1,15 @@
+{
+  "name": "expiring-tweets",
+  "version": "1.0.0",
+  "description": "Deletes old tweets, archiving them as textfiles to Dropbox.",
+  "main": "index.js",
+  "repository": "https://github.com/kevboh/expiring-tweets",
+  "author": "Kevin Barrett <kevboh@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "dropbox": "4.0.16",
+    "isomorphic-fetch": "2.2.1",
+    "twitter": "1.7.1"
+  }
+}
