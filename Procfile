@@ -1,2 +1,3 @@
 web: node app.js
-worker: node expire-tweets.js
+tweets-worker: node expire-tweets.js
+likes-worker: node expire-likes.js
