@@ -13,7 +13,7 @@
   "dependencies": {
     "big-integer": "1.6.41",
     "dropbox": "4.0.16",
-    "express": "4.16.4",
+    "express": "4.17.3",
     "isomorphic-fetch": "2.2.1",
     "node-pinboard": "^2.0.1",
     "twitter": "1.7.1"
